@@ -1,0 +1,8 @@
+domain,risk_evar,risk_erm,discount,tolerance,vspan,horizon,initstate
+inventory_generic,0.9,0.5,0.9,1,10,100,1
+ruin,0.9,0.5,0.95,0.5,20,200,8
+riverswim,0.9,0.5,0.98,1,50,100,1
+inventory,0.9,0.5,0.8,5,25,100,1
+population,0.9,0.5,0.95,1,20,100,1
+machine,0.9,0.5,0.8,2,100,100,1
+cancer,0.9,0.5,0.7,100,333.333333333333,50,1
