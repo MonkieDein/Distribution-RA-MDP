@@ -140,7 +140,7 @@ CVAR_multi = function(X,alphas,prob = NULL){
     if (k == 0){
       v[l] = X[1]
     } else {
-      while (k > (Psum + prob[index] +1e-10) ){
+      while (k > (Psum + prob[index] +1e-12) ){
         Psum = (Psum + prob[index])
         Vsum = Vsum + prob[index]*X[index]
         index = index + 1
@@ -231,7 +231,7 @@ VAR_multi = function(X,alphas,prob = NULL){
   Psum = 0
   for (l in 1:lQl){
     k = alphas[l]
-    while (k > (Psum + prob[index] + 1e-10) ){
+    while (k > (Psum + prob[index] + 1e-12) ){
       Psum = Psum + prob[index]
       index = index + 1
     }
