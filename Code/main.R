@@ -14,7 +14,7 @@ folder_name = "domains_output/"
 Time = list()
 TrainOut = list()
 
-domain = "inventory"
+domain = "riverswim"
 # for (domain in domains){
   cat("domain",domain)
   
@@ -35,6 +35,9 @@ domain = "inventory"
   param = read.csv(paste0(folder_name,"/parameters.csv"),header = TRUE,stringsAsFactors=F)
   list[,MDP$risk_evar,MDP$risk_erm,MDP$gamma,MDP$tolerance,MDP$vspan,MDP$horizon, MDP$S_0]=param[param$domain == domain,] 
   
+  TrainOutVAR <- solveQMDPvar(MDP,decimal=1,horizon = 100)
+  TrainOutCVAR <- solveQMDPcvar(MDP,decimal=1,horizon = 100)
+  TrainOutE <- solveE(MDP,horizon = 1000)
   # solve MDP with each algorithms
   for (algo in algorithms){
     Time[[domain]][[algo]]            <- list()
