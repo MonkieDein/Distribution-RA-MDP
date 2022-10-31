@@ -39,20 +39,18 @@ domain = "riverswim"
   TrainOutCVAR <- solveQMDPcvar(MDP,decimal=1,horizon = 100)
   TrainOutE <- solveE(MDP,horizon = 1000)
   # solve MDP with each algorithms
-  for (algo in algorithms){
-    Time[[domain]][[algo]]            <- list()
-    Time[[domain]][[algo]][["Start"]] <- Sys.time()
-    TrainOut[[domain]][[algo]]        <- code( paste0("solve",algo,"(MDP, algoParam[['",algo,"']])") )
-    Time[[domain]][[algo]][["End"]]   <- Sys.time()
-  }
+  # for (algo in algorithms){
+  #   Time[[domain]][[algo]]            <- list()
+  #   Time[[domain]][[algo]][["Start"]] <- Sys.time()
+  #   TrainOut[[domain]][[algo]]        <- code( paste0("solve",algo,"(MDP, algoParam[['",algo,"']])") )
+  #   Time[[domain]][[algo]][["End"]]   <- Sys.time()
+  # }
 
-  rm(list = ls.str(mode = 'numeric'))
-  rm(list = ls.str(mode = 'function'))
-  save.image(file = paste0(saveFold,"Train.RData"))
-  
-  rm(list = ls.str(mode = 'list'))
-  source("Code/RASR_code.R")
-  source("Code/PflugCVaR.R")
+  # rm(list = ls.str(mode = 'numeric'))
+  # rm(list = ls.str(mode = 'function'))
+  # save.image(file = paste0(saveFold,"Train.RData"))
+  # 
+  # rm(list = ls.str(mode = 'list'))
 # }
 
 
