@@ -2,7 +2,7 @@
 # Change to your respective directory location
 setwd("~/Desktop/GITHUB/Distribution-RA-MDP")
 rm(list=ls())
-source("Code/Basic_Utils.R")
+source("Code/UMDP.R")
 
 # Domain put to test
 domains = c("inventory_generic","ruin","riverswim","inventory","machine","population" ,"cancer") #  : file too big cannot push to git.
@@ -35,8 +35,12 @@ domain = "riverswim"
   param = read.csv(paste0(folder_name,"/parameters.csv"),header = TRUE,stringsAsFactors=F)
   list[,MDP$risk_evar,MDP$risk_erm,MDP$gamma,MDP$tolerance,MDP$vspan,MDP$horizon, MDP$S_0]=param[param$domain == domain,] 
   
-  TrainOutVAR <- solveQMDPvar(MDP,decimal=1,horizon = 100)
-  TrainOutCVAR <- solveQMDPcvar(MDP,decimal=1,horizon = 100)
+  # Value function stores V[[t]][[s]][c("qBegin","prob","V")] as distribution of the value function
+  # pi on another hand stores pi[[t]][[s]]["qBegin"] as policy for the quantile level.
+  TrainOutVAR <- solveQMDPvar(MDP,decimal=1,horizon = 30)
+  # CVaR is discretize via optimal var discretization therefore is not accurate.
+  TrainOutCVAR <- solveQMDPcvar(MDP,decimal=1,horizon = 30)
+  # For expectation V[[t]][s] and pi[[t]][s] stores the optimal value function and policy.
   TrainOutE <- solveE(MDP,horizon = 1000)
   # solve MDP with each algorithms
   # for (algo in algorithms){

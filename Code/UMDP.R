@@ -1,3 +1,4 @@
+source("Code/Basic_Utils.R")
 
 # compute sum_{i=1:(n-1)} prob[i] for quantile begin at [n] 
 iterSum = function(prob){
@@ -36,21 +37,23 @@ Distribution = function(MDP, v, s, a, precision = 5){
 solveQMDPvar = function(MDP, decimal = 5, horizon = 1000){
   V = list()
   PI = list()
+  # value function initialization, with (v = 0, prob = 1)
   V[[horizon+1]] = lapply(MDP$S,function(s) data.frame(qBegin = c(0) ,prob = c(1) ,v = c(0) ) )
   for (t in horizon:1){
     V[[t]] = list()
     PI[[t]] = list()
     for (s in MDP$S){
-      # Retrieve distribution of value function for each s,a
+      # Retrieve distribution of value function for each s,a up to decimal precision.
       V_ts = lapply(MDP$A, function(a) Distribution(MDP,V[[t+1]],s,a,decimal))
-      # Extract unique quantile and compute value
+      # Extract unique quantile and compute value.
       Q = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qBegin"]]))))
       if (length(Q) == 1){ prob = 1 } else { prob = c(Q[2:length(Q)],1)-Q }
       VAR_tsa = matrix(sapply(MDP$A, function(a) VAR_multi( V_ts[[a]][["v"]] , Q+1e-8 , V_ts[[a]][["prob"]] ) )
                        ,ncol = MDP$lAl)
-      # Optimal policy PI and optimal value at risk
+      # Optimal policy PI and optimal value at risk.
       tmp = data.frame(prob = prob, v =apply(VAR_tsa,1,max),
                        pi =  apply(VAR_tsa,1,which.max))
+      # Merge value: Combine and add up pmf for identical value and policy.
       tmp = aggregate(x = tmp["prob"], by = tmp[c("pi","v")], FUN = sum)
       # store optimal value function
       PI[[t]][[s]] = tmp$pi
