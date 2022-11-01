@@ -2,13 +2,13 @@ source("Code/Basic_Utils.R")
 
 # compute sum_{i=1:(n-1)} prob[i] for quantile begin at [n] 
 iterSum = function(prob){
-  sumprob = prob*0
+  sumprob = c(prob*0,1)
   if (length(prob) > 1){
     for (i in 2:length(prob)){
       sumprob[i] = sumprob[i-1] + prob[i-1]
     }
   }
-  return(sumprob)
+  return(sumprob[-1])
 }
 
 
@@ -27,7 +27,7 @@ Distribution = function(MDP, v, s, a, precision = 5){
   X = aggregate(x = X["prob"], by = X["v"], FUN = sum)
   
   # sum_{i=1:(n-1)} prob[i] for quantile begin at [n] 
-  X[["qBegin"]] = iterSum(X$prob)
+  X[["qEnd"]] = iterSum(X$prob)
   
   return(X)
 }
@@ -38,7 +38,7 @@ solveQMDPvar = function(MDP, decimal = 5, horizon = 1000){
   V = list()
   PI = list()
   # value function initialization, with (v = 0, prob = 1)
-  V[[horizon+1]] = lapply(MDP$S,function(s) data.frame(qBegin = c(0) ,prob = c(1) ,v = c(0) ) )
+  V[[horizon+1]] = lapply(MDP$S,function(s) data.frame(qEnd = c(1) ,prob = c(1) ,v = c(0) ) )
   for (t in horizon:1){
     V[[t]] = list()
     PI[[t]] = list()
@@ -46,9 +46,9 @@ solveQMDPvar = function(MDP, decimal = 5, horizon = 1000){
       # Retrieve distribution of value function for each s,a up to decimal precision.
       V_ts = lapply(MDP$A, function(a) Distribution(MDP,V[[t+1]],s,a,decimal))
       # Extract unique quantile and compute value.
-      Q = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qBegin"]]))))
-      if (length(Q) == 1){ prob = 1 } else { prob = c(Q[2:length(Q)],1)-Q }
-      VAR_tsa = matrix(sapply(MDP$A, function(a) VAR_multi( V_ts[[a]][["v"]] , Q+1e-8 , V_ts[[a]][["prob"]] ) )
+      Q = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qEnd"]]))))
+      if (length(Q) == 1){ prob = 1 } else { prob = Q-c(0,Q[1:(length(Q)-1)]) }
+      VAR_tsa = matrix(sapply(MDP$A, function(a) VAR_multi( V_ts[[a]][["v"]] , Q , V_ts[[a]][["prob"]] ) )
                        ,ncol = MDP$lAl)
       # Optimal policy PI and optimal value at risk.
       tmp = data.frame(prob = prob, v =apply(VAR_tsa,1,max),
@@ -57,7 +57,7 @@ solveQMDPvar = function(MDP, decimal = 5, horizon = 1000){
       tmp = aggregate(x = tmp["prob"], by = tmp[c("pi","v")], FUN = sum)
       # store optimal value function
       PI[[t]][[s]] = tmp$pi
-      V[[t]][[s]] = data.frame(qBegin = iterSum(tmp$prob) ,prob = tmp["prob"] ,
+      V[[t]][[s]] = data.frame(qEnd = iterSum(tmp$prob) ,prob = tmp["prob"] ,
                                v = tmp["v"])
     }
   }
@@ -67,7 +67,7 @@ solveQMDPvar = function(MDP, decimal = 5, horizon = 1000){
 solveQMDPcvar = function(MDP, decimal = 5, horizon = 1000){
   V = list()
   PI = list()
-  V[[horizon+1]] = lapply(MDP$S,function(s) data.frame(qBegin = c(0) ,prob = c(1) ,v = c(0) ) )
+  V[[horizon+1]] = lapply(MDP$S,function(s) data.frame(qEnd = c(1) ,prob = c(1) ,v = c(0) ) )
   for (t in horizon:1){
     V[[t]] = list()
     PI[[t]] = list()
@@ -75,11 +75,11 @@ solveQMDPcvar = function(MDP, decimal = 5, horizon = 1000){
       # Retrieve distribution of value function for each s,a
       V_ts = lapply(MDP$A, function(a) Distribution(MDP,V[[t+1]],s,a,decimal))
       # Extract unique quantile and compute value
-      Q = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qBegin"]]))))
-      if (length(Q) == 1){ prob = 1 } else { prob = c(Q[2:length(Q)],1)-Q }
-      VAR_tsa = matrix(sapply(MDP$A, function(a) VAR_multi( V_ts[[a]][["v"]] , Q+1e-8 , V_ts[[a]][["prob"]] ) )
+      Q = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qEnd"]]))))
+      if (length(Q) == 1){ prob = 1 } else { prob = Q-c(0,Q[1:(length(Q)-1)]) }
+      VAR_tsa = matrix(sapply(MDP$A, function(a) VAR_multi( V_ts[[a]][["v"]] , Q , V_ts[[a]][["prob"]] ) )
                        ,ncol = MDP$lAl)
-      CVAR_tsa = matrix(sapply(MDP$A, function(a) CVAR_multi( V_ts[[a]][["v"]] , Q+1e-8 , V_ts[[a]][["prob"]] ) )
+      CVAR_tsa = matrix(sapply(MDP$A, function(a) CVAR_multi( V_ts[[a]][["v"]] , Q , V_ts[[a]][["prob"]] ) )
                         ,ncol = MDP$lAl)
       PI[[t]][[s]] = apply(CVAR_tsa,1,which.max)
       # Optimal policy PI and optimal value at risk
@@ -88,7 +88,7 @@ solveQMDPcvar = function(MDP, decimal = 5, horizon = 1000){
       tmp = aggregate(x = tmp["prob"], by = tmp[c("pi","v")], FUN = sum)
       # store optimal value function
       PI[[t]][[s]] = tmp$pi
-      V[[t]][[s]] = data.frame(qBegin = iterSum(tmp$prob) ,prob = tmp$prob ,
+      V[[t]][[s]] = data.frame(qEnd = iterSum(tmp$prob) ,prob = tmp$prob ,
                                v = tmp$v)
     }
   }
@@ -99,12 +99,6 @@ solveQMDPcvar = function(MDP, decimal = 5, horizon = 1000){
 # get transition to s_1 obtain some r_0 = r(s_0,a_1,s_1). 
 # v_1 = (v_0 - r_0) / \gamma , use v_1 as sufficient statistics to map 
 # to our s'.
-
-
-
-
-
-
 
 
 solveE = function(MDP, horizon = 1000){

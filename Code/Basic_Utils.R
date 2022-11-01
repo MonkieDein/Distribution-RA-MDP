@@ -114,7 +114,7 @@ CVAR_multi = function(X,alphas,prob = NULL){
     prob = rep(1/n,n)
   } else if (length(prob) != length(X)){
     stop("CVAR: Mismatch Dimensions of prob and value")
-  } else if (abs(sum(prob) - 1) > 1e-8){
+  } else if (abs(sum(prob) - 1) > 1e-15){
     stop("CVAR: Distribution probability does not sum to one (1)")
   }
 
@@ -140,7 +140,7 @@ CVAR_multi = function(X,alphas,prob = NULL){
     if (k == 0){
       v[l] = X[1]
     } else {
-      while (k > (Psum + prob[index] +1e-12) ){
+      while (k > (Psum + prob[index] +1e-15) ){
         Psum = (Psum + prob[index])
         Vsum = Vsum + prob[index]*X[index]
         index = index + 1
@@ -211,7 +211,7 @@ VAR_multi = function(X,alphas,prob = NULL){
     return(v)
   } else if (length(prob) != length(X)){
     stop("VAR: Mismatch Dimensions of prob and value")
-  } else if (abs(sum(prob) - 1) > 1e-8){
+  } else if (abs(sum(prob) - 1) > 1e-15){
     stop("VAR: Distribution probability does not sum to one (1)")
   }
   
@@ -231,7 +231,7 @@ VAR_multi = function(X,alphas,prob = NULL){
   Psum = 0
   for (l in 1:lQl){
     k = alphas[l]
-    while (k > (Psum + prob[index] + 1e-12) ){
+    while (k > (Psum + prob[index] + 1e-15) ){
       Psum = Psum + prob[index]
       index = index + 1
     }
