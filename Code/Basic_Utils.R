@@ -134,6 +134,7 @@ CVAR_multi = function(X,alphas,prob = NULL){
   Psum = 0
   Vsum = 0
   index = 1
+  maxlen = length(prob)
   # sequentially solves for all alpha in alphas
   for (l in 1:lQl){
     k = alphas[l]
@@ -141,6 +142,9 @@ CVAR_multi = function(X,alphas,prob = NULL){
       v[l] = X[1]
     } else {
       while (k > (Psum + prob[index] +1e-15) ){
+        if (index == maxlen){
+          break
+        }
         Psum = (Psum + prob[index])
         Vsum = Vsum + prob[index]*X[index]
         index = index + 1
@@ -181,7 +185,7 @@ drawS_ = function(weights,choice){
   choiceIndex = 1
   for (w in weights){
     choice = choice - w
-    if (choice <= 1e-10){
+    if (choice <= 1e-15){
       return(choiceIndex)
     }
     choiceIndex = choiceIndex + 1
@@ -193,7 +197,7 @@ VAR = function(X,alpha = 0.05,prob = NULL){
   if (is.null(prob)){
     return(quantile(X,alpha,type = 1,names = FALSE))
   }
-  if (abs(sum(prob) - 1) > 1e-8){
+  if (abs(sum(prob) - 1) > 1e-15){
     stop("VAR: Distribution probability does not sum to one (1)")
   }
   # sort value and its probability
@@ -227,11 +231,15 @@ VAR_multi = function(X,alphas,prob = NULL){
   v = alphas*0
   names(v) = alphas
   
+  maxlen=length(prob)
   index = 1
   Psum = 0
   for (l in 1:lQl){
     k = alphas[l]
     while (k > (Psum + prob[index] + 1e-15) ){
+      if (index == maxlen){
+        break
+      }
       Psum = Psum + prob[index]
       index = index + 1
     }

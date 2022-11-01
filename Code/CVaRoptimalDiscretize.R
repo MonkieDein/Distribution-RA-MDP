@@ -7,7 +7,7 @@ source("Code/UMDP.R")
 X = data.frame(V = c(5,10,30),prob = c(0.1,0.6,0.3))
 Y = data.frame(V = c(4,12,18),prob = c(0.1,0.6,0.3))
 Z = data.frame(V = c(1,13,14),prob = c(0.1,0.6,0.3))
-Q = c(iterSum(c(0.1,0.6,0.3)),1)
+Q = c(0,iterSum(c(0.1,0.6,0.3)))
   
 X_cvar= CVAR_multi(X$V,alphas = Q,prob = X$prob)
 Y_cvar= CVAR_multi(Y$V,alphas = Q,prob = Y$prob)
