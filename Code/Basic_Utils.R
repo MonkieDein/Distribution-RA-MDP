@@ -134,7 +134,6 @@ CVAR_multi = function(X,alphas,prob = NULL){
   Psum = 0
   Vsum = 0
   index = 1
-  maxlen = length(prob)
   # sequentially solves for all alpha in alphas
   for (l in 1:lQl){
     k = alphas[l]
@@ -142,10 +141,7 @@ CVAR_multi = function(X,alphas,prob = NULL){
       v[l] = X[1]
     } else {
       while (k > (Psum + prob[index] +1e-15) ){
-        if (index == maxlen){
-          break
-        }
-        Psum = (Psum + prob[index])
+        Psum = sum(prob[1:index])# (Psum + prob[index])
         Vsum = Vsum + prob[index]*X[index]
         index = index + 1
       }
@@ -231,16 +227,12 @@ VAR_multi = function(X,alphas,prob = NULL){
   v = alphas*0
   names(v) = alphas
   
-  maxlen=length(prob)
   index = 1
   Psum = 0
   for (l in 1:lQl){
     k = alphas[l]
     while (k > (Psum + prob[index] + 1e-15) ){
-      if (index == maxlen){
-        break
-      }
-      Psum = Psum + prob[index]
+      Psum = sum(prob[1:index]) # Psum + prob[index]
       index = index + 1
     }
     v[l] = X[index]  # This is Piecewise Linear
