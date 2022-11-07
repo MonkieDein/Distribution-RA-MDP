@@ -39,9 +39,9 @@ domain = "riverswim"
   # pi on another hand stores pi[[t]][[s]]["qBegin"] as policy for the quantile level.
   TrainOutVAR <- solveQMDPvar(MDP,decimal=1,horizon = 30)
   # CVaR is discretize via optimal var discretization therefore is not accurate.
-  TrainOutCVAR <- solveQMDPcvar(MDP,decimal=1,horizon = 30)
+  TrainOutCVAR <- solveQMDPcvar(MDP,decimal=1,horizon = 50)
   # For expectation V[[t]][s] and pi[[t]][s] stores the optimal value function and policy.
-  TrainOutE <- solveE(MDP,horizon = 1000)
+  TrainOutE <- solveE(MDP,horizon = 50)
   # solve MDP with each algorithms
   # for (algo in algorithms){
   #   Time[[domain]][[algo]]            <- list()
