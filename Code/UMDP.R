@@ -75,7 +75,14 @@ solveQMDPcvar = function(MDP, decimal = 5, horizon = 1000){
       # Retrieve distribution of value function for each s,a
       V_ts = lapply(MDP$A, function(a) Distribution(MDP,V[[t+1]],s,a,decimal))
       # Extract unique quantile and compute value
-      Q = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qEnd"]]))))
+      Qvar = sort(unique(unlist(sapply(MDP$A, function(a) V_ts[[a]][["qEnd"]]))))
+      if (length(Qvar) != 1){
+        CVAR_var = lapply(MDP$A, function(a) c(0,Qvar)*CVAR_multi( V_ts[[a]][["v"]] , c(0,Qvar) , V_ts[[a]][["prob"]] )) 
+        # Update to contain optimal quantile for CVaR
+        Q = cvarDiscretize(c(0,Qvar),CVAR_var)[-1]
+      } else  {
+        Q = Qvar
+      }
       if (length(Q) == 1){ prob = 1 } else { prob = Q-c(0,Q[1:(length(Q)-1)]) }
       VAR_tsa = matrix(sapply(MDP$A, function(a) VAR_multi( V_ts[[a]][["v"]] , Q , V_ts[[a]][["prob"]] ) )
                        ,ncol = MDP$lAl)
@@ -95,6 +102,36 @@ solveQMDPcvar = function(MDP, decimal = 5, horizon = 1000){
   return(list(V=V,PI=PI))
 }
 
+# Q[q] QV[[a]][q]
+cvarDiscretize = function(Q,QV){
+  ITSC2 = list()
+  for (q in 2:length(Q) ){
+    a1 = which.max(sapply(QV,function(qv) qv[q-1]))
+    minq = Inf
+    minq_i = a1
+    for (a2 in order(sapply(QV,function(qv) qv[q]),decreasing = TRUE) ){
+      if (QV[[a2]][q] > QV[[a1]][q]){
+        list[x,y] = intersect(Q[q-1],Q[q],QV[[a1]][q-1],QV[[a1]][q],
+                              QV[[a2]][q-1],QV[[a2]][q])
+        if (x < minq){
+          ITSC2[[paste0(Q[q])]][[paste(a1,a2)]] = list(x=x,y=y)
+          ITSC2[[paste0(Q[q])]][[paste(a1,minq_i)]] = NULL
+          ITSC2[[paste0(Q[q])]][[paste(minq_i,a2)]] = intersect(Q[q-1],Q[q],
+                                                                 QV[[minq_i]][q-1],QV[[minq_i]][q],
+                                                                 QV[[a2]][q-1],QV[[a2]][q])
+          minq = x
+          minq_i = a2
+        }
+      }
+    }
+  }
+  if (length(ITSC2) != 0 ){
+    xs = c(sapply(ITSC2,function(L) sapply(L,function(L2) L2$x)))-1e-15
+  } else {
+    xs = c()
+  }
+  return(sort(c(Q,xs)))
+}
 # start from s'(s_0,q_0), v_0 = v(s_0,q_0) then pick a_1 = pi(s_0,q_0), 
 # get transition to s_1 obtain some r_0 = r(s_0,a_1,s_1). 
 # v_1 = (v_0 - r_0) / \gamma , use v_1 as sufficient statistics to map 

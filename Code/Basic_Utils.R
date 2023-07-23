@@ -35,6 +35,14 @@ csvToMDP = function(file_name){
   return(MDP)
 }
 
+
+# compute intersection for two lines L1 = ((x1,y1),(x2,y2)), L2 = ((x3,y3),(x4,y4))
+intersect = function(x1,x2,y1,y2,y3,y4,x3 = x1,x4 = x2){
+  x = ( (x1*y2 - y1*x2 )*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4) )/( (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4) )
+  y = ( (x1*y2 - y1*x2 )*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4) )/( (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4) )
+  return(list(x=x,y=y))
+}
+
 # Expectation function which calculate the mean for vector-reward X and probability of occurrence.
 E = function(X, prob = NULL){
   if (!is.null(prob)){
